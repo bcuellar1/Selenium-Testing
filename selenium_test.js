@@ -43,6 +43,7 @@ async function main() {
   // element.sendKeys('Cheese!\n');
 
   driver.get(base_url)
+  driver.manage().window().maximize()
   
   //driver.findElement(By.xpath("/html/body")).sendKeys(Keys.COMMAND +"t");
 
@@ -57,24 +58,64 @@ async function main() {
   //gets all product names by 'class name'
   var elems = driver.findElements(By.css(".woocommerce-LoopProduct-link"));
 
+  for (let element of await driver.findElements(By.css(".woocommerce-LoopProduct-link"))){
+    console.log("I can do something with this element counter= " +product_index)
+    await a_function(element)
+    //console.log(await element.getAttribute("href"));
+    console.log("ok onto the next element\n")
+    ++global_counter
+  }
+
+  // setTimeout(() =>{
+  //   console.log(elems)
+  // },10000)
     
   
 
   //console.log(i);
   //outputs an array of all elements found
+  // var new_array =  map(elems, (e, index) => {
+  //      console.log(" on index: " +index)
+  //      return e
+  //   })
 
-  map(elems, (e,index) => {
-    console.log(" on index: " +index)
-    if(index === global_counter){
-      product_index = index;
-      a_function(e, index);
-    }
-  })
+  //   setTimeout(() => {
+  //     for await(let new_e of new_array){
+  //       console.log("starting loop")
+  //       a_function(new_e);
+  //     } 
+  //   },10000)
+
+  // setTimeout(() =>{
+  //   console.log("timeout working")
+  //   console.log(new_array)
+  //   setTimeout(() => {
+  //     console.log(new_array)
+  //   },10000)
+  //   // for (el in new_array){
+  //   //   console.log("for loop working")
+  //   //   console.log(el)
+  //   // }
+  // }, 10000)
+     
+
+  //this works for clicking items 
+  // map(elems, (e,index) => {
+  //   console.log(" on index: " +index)
+  //   if(index === global_counter){
+  //     product_index = index;
+  //     a_function(e, index);
+  //   }
+  // })
+
 }
 
 
 main();
-async function a_function(e,index){
+
+//idea: wrap this function in a promise that must return
+//turn this into a promise
+async function a_function(e){
   //shopping cart, check_out, and submit will always be the same
   // have to create a way to choose mutltiple options
   
@@ -87,17 +128,25 @@ async function a_function(e,index){
 
   //need a open tab, manage cache button
 
-
   await add_to_cart(default_option);
   await shopping_cart();
+  //await hit_the_button();
+  //await shopping_cart_2();
   await check_out();
   await submit();
   await confirmation_page();
   await clearCache({webdriver, driver}, {cookies: true});
   email_counter++
+  //issue at multiple_options!!!
   await multiple_options()
   console.log("finished all multiple options, need to clear cache")
   //await clearCache({webdriver, driver}, {cookies: true});
+
+
+  return new Promise((resolve) =>{
+    console.log("does this cheat the system?")
+    resolve()
+  })
 }
 
 
@@ -117,7 +166,7 @@ var add_to_cart = (option_to_select) => {
       c_box.click()
     ])
   
-    .then((next_page) =>{
+    .then(() =>{
       usage.click().then(()=>{
         driver.findElement(webdriver.By.xpath("//*[@id='usage']/option[" + option_to_select + "]")).click().then(() =>{
           //this click ^ causes many issues because after 'usage' is clicked and selected, ^reference gets 
@@ -134,38 +183,54 @@ var shopping_cart = () => {
   return new Promise((resolve) =>{
     const coupon_c = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='coupon_code']")), 15000);
     const apply_c = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='column-left']/table/tbody/tr[2]/td/div/button")), 15000);
-    const next_p = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='post-6']/div/div/div[2]/div[2]/div/a")), 15000);
     Promise.all([
       coupon_c.click(),
       coupon_c.sendKeys("freeshipping"),
-      apply_c.click()
+      apply_c.click(),
     ])
     .then(() => {
-      next_p.click().then(() => {
+      hit_the_button().then(() =>{
+        console.log("is THIS resolvig")
         resolve()
       })
-      
-      //var act = new webdriver.Actions(driver);
-      //act.mouseMove(driver.findElement(By.xpath("//*[@id='post-6']/div/div/div[2]/div[2]/div/a"))).click().build().perform()
-
-      //need to have an explicit wait of 500 milliseconds or else function works 50% of the time
-      //*[@id="post-6"]/div/div/div[2]/div[2]/div
-      //*[@id="post-6"]/div/div/div[2]/div[2]/div
-      //*[@id="post-6"]/div/div/div[2]/div[2]/div/a
-      //parentElement.childNodes[1]
-      //By.#post-6 > div > div > div.cart-collaterals > div.cart_totals > div > a
-  
-      // setTimeout(() => {
-      //   console.log("trying js")
-      //   //const next_p = driver.wait(webdriver.until.elementLocated(By.xpath("//label")),15000);
-      //   next_p.click().then(() => {
-      //     resolve()
-      //   })
-        
-      // }, 5000);
     })
   })
 }
+
+var hit_the_button = () =>{
+  return new Promise((resolve) =>{
+    console.log('here')
+    const please_just_click = driver.wait(webdriver.until.elementLocated(By.className("checkout-button button alt wc-forward")),10000)
+    please_just_click.click().then(() => {
+      console.log("am i resolving")
+      resolve();
+    });  
+    // resolve()
+  })
+}
+
+var shopping_cart_2 = () =>{
+  return new Promise((resolve) =>{
+    const open_c_code = driver.wait(webdriver.until.elementLocated(By.className("showcoupon")), 10000)
+    const apply = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='shop-isle-checkout-coupon']/form/p[3]/button")), 10000)
+    Promise.all([
+      open_c_code.click(),
+    ])
+    .then(() => {
+      //need to chain then's and have an implicit wait to have this way function
+      setTimeout(() =>{
+        const myElement = driver.switchTo().activeElement();
+        myElement.sendKeys("freeshipping").then(() =>{
+          apply.click().then(() =>{
+            resolve()
+          })
+        });
+      },500)
+    })
+  })
+}
+
+
 
 //for check_out page, the input/text fields are coded differently, find by xpath returns a non-interactable field
 //therefore to fix issue and write on the page need to use a different find method, I.E. by ID. Find by ID
@@ -202,9 +267,13 @@ var check_out = () => {
       state_c.click(),
     ])
     .then(() => {
+      //resolve()
+      // state_choice().then(() => {
+      //   resolve()
+      // })
       var state_choice = driver.findElement(By.xpath("/html/body/span/span/span[1]/input"))
       state_choice.sendKeys("California\n")
-      // '\n' functions as a pseduo enter
+      // // '\n' functions as a pseduo enter
       resolve()
     })
   })
@@ -216,7 +285,7 @@ var submit = () => {
     const password = driver.wait(webdriver.until.elementLocated(By.id("account_password")), 15000)
     Promise.all([
       email_address.click(),
-      email_address.sendKeys(email_counter +"fauxemail@fakeemaildomain.com"),
+      email_address.sendKeys(email_counter +"fauuxxemail@fakeemaildomain.com"),
       password.click(),
       password.sendKeys("123456!@#$%"),
     ])
@@ -273,13 +342,8 @@ var multiple_options = () =>{
     }
   })
 }
-
-
-//this function re-opens browser to home page and chooses the next options for one product
-//Current Issue: opening/closing a browser 
 async function mul_options(op_to_select){
   console.log("made it to function mul_options")
-  //have to re-map everything
   driver.get('https://kudos.inc.com/shop/')
   var new_elems = driver.findElements(By.css(".woocommerce-LoopProduct-link"));
   map(new_elems, (new_e,new_index) => {
@@ -296,3 +360,21 @@ async function mul_options(op_to_select){
   await confirmation_page();
   console.log("did the cache get cleared?")
 }
+
+
+
+// **** This implementation is moot
+
+// var state_choice = () => {
+//   return new promise((resolve) => {
+//     const state_c = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='billing_state_field']/span/span/span[1]/span/span[2]")), 15000);
+//     Promise.all([
+//       state_c.click()
+//     ])
+//     .then(() => {
+//       var state_choice = driver.findElement(By.xpath("/html/body/span/span/span[1]/input"))
+//       state_choice.sendKeys("California\n")
+//       resolve()
+//     })
+//   })
+// }
