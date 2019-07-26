@@ -1,0 +1,18 @@
+{
+  "name": "selenium-node",
+  "version": "1.0.0",
+  "description": "Testing Selenium",
+  "main": "selenium_test.js",
+  "dependencies": {
+    "10minutemail": "^0.2.0",
+    "selenium-chrome-clear-cache": "^1.2.1",
+    "selenium-webdriver": "^4.0.0-alpha.4",
+    "tempmail.js": "^0.3.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

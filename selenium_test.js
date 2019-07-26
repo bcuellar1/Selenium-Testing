@@ -96,7 +96,7 @@ async function a_function(e,index){
   await clearCache({webdriver, driver}, {cookies: true});
   email_counter++
   await multiple_options()
-  console.log("finished all multiple options, need tp clear cache")
+  console.log("finished all multiple options, need to clear cache")
   //await clearCache({webdriver, driver}, {cookies: true});
 }
 
@@ -112,16 +112,13 @@ var add_to_cart = (option_to_select) => {
     Promise.all([
       list.click().then(() =>{
                                                       //this can be changed by a key 
-          console.log("is this my issue?")
           driver.findElement(webdriver.By.xpath("//*[@id='list']/option[2]")).click()
-          console.log("xpath: " + "//*[@id='list']/option[" + option_to_select + "]")
       }),
       c_box.click()
     ])
   
     .then((next_page) =>{
       usage.click().then(()=>{
-        console.log("xpath: " + "//*[@id='usage']/option[" + option_to_select + "]")
         driver.findElement(webdriver.By.xpath("//*[@id='usage']/option[" + option_to_select + "]")).click().then(() =>{
           //this click ^ causes many issues because after 'usage' is clicked and selected, ^reference gets 
           //changed and is unknown, therefore 'usage' click has to be moved to promise.all then    
@@ -137,18 +134,35 @@ var shopping_cart = () => {
   return new Promise((resolve) =>{
     const coupon_c = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='coupon_code']")), 15000);
     const apply_c = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='column-left']/table/tbody/tr[2]/td/div/button")), 15000);
-    const next_p = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='post-6']/div/div/div[2]/div[2]/div/a")),15000);
+    const next_p = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='post-6']/div/div/div[2]/div[2]/div/a")), 15000);
     Promise.all([
       coupon_c.click(),
       coupon_c.sendKeys("freeshipping"),
       apply_c.click()
     ])
     .then(() => {
+      next_p.click().then(() => {
+        resolve()
+      })
+      
+      //var act = new webdriver.Actions(driver);
+      //act.mouseMove(driver.findElement(By.xpath("//*[@id='post-6']/div/div/div[2]/div[2]/div/a"))).click().build().perform()
+
       //need to have an explicit wait of 500 milliseconds or else function works 50% of the time
-      setTimeout(() => {
-        next_p.click()
-      }, 500);
-      resolve()
+      //*[@id="post-6"]/div/div/div[2]/div[2]/div
+      //*[@id="post-6"]/div/div/div[2]/div[2]/div
+      //*[@id="post-6"]/div/div/div[2]/div[2]/div/a
+      //parentElement.childNodes[1]
+      //By.#post-6 > div > div > div.cart-collaterals > div.cart_totals > div > a
+  
+      // setTimeout(() => {
+      //   console.log("trying js")
+      //   //const next_p = driver.wait(webdriver.until.elementLocated(By.xpath("//label")),15000);
+      //   next_p.click().then(() => {
+      //     resolve()
+      //   })
+        
+      // }, 5000);
     })
   })
 }
@@ -191,7 +205,6 @@ var check_out = () => {
       var state_choice = driver.findElement(By.xpath("/html/body/span/span/span[1]/input"))
       state_choice.sendKeys("California\n")
       // '\n' functions as a pseduo enter
-      console.log("await functioning")
       resolve()
     })
   })
@@ -199,12 +212,11 @@ var check_out = () => {
 
 var submit = () => {
   return new Promise((resolve) =>{
-    console.log("in submit")
     const email_address = driver.wait(webdriver.until.elementLocated(By.id("billing_email")), 15000)
     const password = driver.wait(webdriver.until.elementLocated(By.id("account_password")), 15000)
     Promise.all([
       email_address.click(),
-      email_address.sendKeys("fakeemail@fakeem"+ email_counter +"aildomain.com"),
+      email_address.sendKeys(email_counter +"fauxemail@fakeemaildomain.com"),
       password.click(),
       password.sendKeys("123456!@#$%"),
     ])
@@ -216,11 +228,11 @@ var submit = () => {
       //sometimes, submit button gives the element click intercepted error because of hidden fields
       //same issue as checkout, need a 500 millisecond implicit wait or else works 50% of the time
       setTimeout(() =>{
-        const submit_button = driver.wait(webdriver.until.elementLocated(By.className("button alt")), 15000)
+        const submit_button = driver.wait(webdriver.until.elementLocated(By.xpath("//*[@id='place_order']")), 15000)
         submit_button.click().then(() => {
           resolve()
         })
-      },700)
+      },5000)
     })
   })
 }
@@ -229,10 +241,11 @@ var submit = () => {
 var confirmation_page = () => {
   return new Promise((resolve) => {
     console.log("made it to confirmation function")
-    confirmation_one = driver.wait(webdriver.until.elementLocated(By.className("woocommerce-order-overview woocommerce-thankyou-order-details order_details")), 15000)
-    confirmation_two = driver.wait(webdriver.until.elementLocated(By.className("woocommerce-order-downloads")), 15000)
-    confirmation_three = driver.wait(webdriver.until.elementLocated(By.className("woocommerce-order-details")), 15000)
-    confirmation_four = driver.wait(webdriver.until.elementLocated(By.className("woocommerce-order-details")),15000)
+    //these guys get timed out after multilple runs 
+    confirmation_one = driver.wait(webdriver.until.elementLocated(By.className("woocommerce-order-overview woocommerce-thankyou-order-details order_details")), 30000)
+    confirmation_two = driver.wait(webdriver.until.elementLocated(By.className("woocommerce-order-downloads")), 30000)
+    confirmation_three = driver.wait(webdriver.until.elementLocated(By.className("woocommerce-order-details")), 30000)
+    confirmation_four = driver.wait(webdriver.until.elementLocated(By.className("woocommerce-order-details")),30000)
     console.log("going to resolve")
     resolve()
   })
